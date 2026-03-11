@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tangential Knife Processor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Tangential Knife</h1>
+            <div class="header-controls">
+                <button id="themeToggle" class="icon-btn" title="Toggle theme">
+                    <span class="light-icon">&#9790;</span>
+                    <span class="dark-icon">&#9788;</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="control-section">
+            <h3>File</h3>
+            <div id="dropZone" class="drop-zone">
+                <p>Drag &amp; drop a ShopBot (.sbp) file</p>
+                <label class="file-input-label">
+                    Browse Files
+                    <input type="file" id="fileInput" accept=".sbp,.SBP" hidden>
+                </label>
+            </div>
+            <div id="fileInfo" class="file-info hidden">
+                <span id="fileName"></span>
+                <button id="clearFileBtn" class="icon-btn" title="Clear file">&times;</button>
+            </div>
+        </section>
+
+        <section class="control-section">
+            <h3>Knife Settings</h3>
+            <div class="input-grid">
+                <label for="bladeWidth">Blade Width</label>
+                <div class="input-with-unit">
+                    <input type="number" id="bladeWidth" value="0.1" step="0.01" min="0.001">
+                    <span class="unit-label">in</span>
+                </div>
+
+                <label for="pulloutAngle">Max Turn In-Material</label>
+                <div class="input-with-unit">
+                    <input type="number" id="pulloutAngle" value="120" step="5" min="1" max="360">
+                    <span class="unit-label">deg</span>
+                </div>
+            </div>
+            <p class="help-text">
+                <strong>Blade Width:</strong> Distance from pivot center to cutting edge.<br>
+                <strong>Max Turn:</strong> Largest direction change allowed without lifting the blade.
+                Softer materials tolerate larger turns.
+            </p>
+        </section>
+
+        <section class="control-section">
+            <h3>Options</h3>
+            <div class="input-grid">
+                <label for="safeZ">Safe Z Height</label>
+                <div class="input-with-unit">
+                    <input type="number" id="safeZ" value="0.5" step="0.05" min="0.05">
+                    <span class="unit-label">in</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="control-section">
+            <button id="processBtn" class="btn primary" disabled>Process File</button>
+            <button id="downloadBtn" class="btn" disabled>Download Processed File</button>
+        </section>
+
+        <section class="control-section">
+            <div id="statusBar" class="status-bar">Ready</div>
+        </section>
+
+        <section class="control-section stats-section hidden" id="statsSection">
+            <h3>Processing Summary</h3>
+            <div class="stats-grid" id="statsGrid"></div>
+        </section>
+    </div>
+
+    <div class="main-area">
+        <canvas id="previewCanvas"></canvas>
+        <div class="canvas-controls">
+            <button id="zoomInBtn" class="icon-btn" title="Zoom in">+</button>
+            <button id="zoomOutBtn" class="icon-btn" title="Zoom out">&minus;</button>
+            <button id="zoomFitBtn" class="icon-btn" title="Fit to view">&#9974;</button>
+        </div>
+        <div id="playbackBar" class="playback-bar hidden">
+            <button id="playBtn" class="playback-btn" title="Play">&#9654;</button>
+            <button id="pauseBtn" class="playback-btn hidden" title="Pause">&#9646;&#9646;</button>
+            <button id="stopBtn" class="playback-btn" title="Stop">&#9632;</button>
+            <input type="range" id="progressSlider" class="progress-slider" min="0" max="1000" value="0">
+            <span id="progressPct" class="progress-pct">0%</span>
+            <label class="speed-label">Speed</label>
+            <input type="range" id="speedSlider" class="speed-slider" min="1" max="100" value="20">
+            <span id="speedValue" class="speed-value">20</span>
+        </div>
+        <div class="canvas-legend">
+            <span class="legend-item"><span class="legend-color" style="background:#666"></span> Jog</span>
+            <span class="legend-item"><span class="legend-color" style="background:#4a9eff"></span> Cut</span>
+            <span class="legend-item"><span class="legend-color" style="background:#ff6b6b"></span> Lift &amp; Turn</span>
+            <span class="legend-item"><span class="legend-color" style="background:#ffa500"></span> Blade Direction</span>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loadingText">Processing...</p>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

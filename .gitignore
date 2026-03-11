@@ -1,0 +1,4 @@
+# Test/reference files (user uploads)
+*.sbp
+*.pp
+screenshots/
