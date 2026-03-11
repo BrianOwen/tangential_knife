@@ -245,9 +245,14 @@ export function setAnimProgress(p) {
     draw();
 }
 
+/** Map raw slider value (1–100) to actual speed (0.25–15 in/s). */
+export function sliderToSpeed(s) {
+    return 0.25 + (s - 1) * (15 - 0.25) / 99;
+}
+
 export function setAnimSpeed(s) {
     if (!animState) return;
-    animState.speed = s;
+    animState.speed = sliderToSpeed(s);
 }
 
 export function isAnimating() {

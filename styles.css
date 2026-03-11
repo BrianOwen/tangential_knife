@@ -436,6 +436,141 @@ input[type="number"]:focus {
     font-size: 0.9rem;
 }
 
+/* Drop zone hint */
+.drop-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+/* File mode badge */
+.file-mode-badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Vector path list */
+.path-controls {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+.btn.sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    flex: 1;
+}
+.badge {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: normal;
+}
+.path-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.path-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.35rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+.path-item:hover {
+    background: var(--bg-tertiary);
+}
+.path-item input[type="checkbox"] {
+    accent-color: var(--accent);
+    flex-shrink: 0;
+}
+.path-item.deselected {
+    opacity: 0.4;
+}
+.path-item .path-color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.path-item .path-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.path-item .path-label small {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+.path-list-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0 0.35rem 0.2rem;
+}
+.path-header-spacer {
+    flex: 1;
+}
+.path-col-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-secondary);
+    text-align: center;
+    width: 3.2rem;
+    flex-shrink: 0;
+}
+.path-item .path-depth,
+.path-item .path-passes {
+    width: 3.2rem;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    text-align: right;
+    flex-shrink: 0;
+}
+.path-item .path-depth::-webkit-inner-spin-button,
+.path-item .path-depth::-webkit-outer-spin-button,
+.path-item .path-passes::-webkit-inner-spin-button,
+.path-item .path-passes::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.path-item .path-depth,
+.path-item .path-passes {
+    -moz-appearance: textfield;
+}
+.path-item .path-depth:focus,
+.path-item .path-passes:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+.path-item .path-unit {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+.path-item .path-x {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
 /* Utilities */
 .hidden { display: none !important; }
 

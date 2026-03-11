@@ -21,16 +21,50 @@
         <section class="control-section">
             <h3>File</h3>
             <div id="dropZone" class="drop-zone">
-                <p>Drag &amp; drop a ShopBot (.sbp) file</p>
+                <p>Drag &amp; drop a file to begin</p>
+                <p class="drop-hint">.sbp &mdash; post-process existing toolpath<br>.svg / .dxf &mdash; create knife toolpath from vectors</p>
                 <label class="file-input-label">
                     Browse Files
-                    <input type="file" id="fileInput" accept=".sbp,.SBP" hidden>
+                    <input type="file" id="fileInput" accept=".sbp,.SBP,.svg,.SVG,.dxf,.DXF" hidden>
                 </label>
             </div>
             <div id="fileInfo" class="file-info hidden">
                 <span id="fileName"></span>
+                <span id="fileMode" class="file-mode-badge"></span>
                 <button id="clearFileBtn" class="icon-btn" title="Clear file">&times;</button>
             </div>
+        </section>
+
+        <!-- Vector mode: cut settings -->
+        <section class="control-section vector-only hidden" id="vectorSettings">
+            <h3>Cut Settings</h3>
+            <div class="input-grid">
+                <label for="cutDepth">Cut Depth</label>
+                <div class="input-with-unit">
+                    <input type="number" id="cutDepth" value="0.125" step="0.0625" min="0.001">
+                    <span class="unit-label">in</span>
+                </div>
+                <label for="feedRate">Feed Rate</label>
+                <div class="input-with-unit">
+                    <input type="number" id="feedRate" value="5.0" step="0.5" min="0.1">
+                    <span class="unit-label">in/s</span>
+                </div>
+                <label for="plungeRate">Plunge Rate</label>
+                <div class="input-with-unit">
+                    <input type="number" id="plungeRate" value="3.0" step="0.5" min="0.1">
+                    <span class="unit-label">in/s</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vector mode: path selection -->
+        <section class="control-section vector-only hidden" id="pathListSection">
+            <h3>Paths <span id="pathCount" class="badge"></span></h3>
+            <div class="path-controls">
+                <button id="selectAllPaths" class="btn sm">Select All</button>
+                <button id="deselectAllPaths" class="btn sm">Deselect All</button>
+            </div>
+            <div id="pathList" class="path-list"></div>
         </section>
 
         <section class="control-section">
