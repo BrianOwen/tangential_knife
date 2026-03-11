@@ -26,6 +26,12 @@ let viewState = {
 let cachedPaths = null;
 let isDarkMode = true;
 
+// Origin crosshair (draggable)
+let originPos = { x: 0, y: 0 };
+let originDragging = false;
+let onOriginChange = null;
+let vectorBounds = null;  // original import bounds, independent of processed output
+
 // Animation state
 let animData = null;    // { waypoints: [{x,y,z,angle,isJog,isLift}...], bladeWidth }
 let animState = null;   // { playing, progress, speed, rafId }
@@ -39,18 +45,53 @@ export function initPreview(canvasEl) {
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
 
     canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // Check if clicking near the origin crosshair
+        const osx = toScreenX(originPos.x);
+        const osy = toScreenY(originPos.y);
+        if (Math.hypot(mx - osx, my - osy) < 15) {
+            originDragging = true;
+            return;
+        }
+
         viewState.isDragging = true;
         viewState.lastMouse = { x: e.clientX, y: e.clientY };
     });
     canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        if (originDragging) {
+            originPos.x = fromScreenX(mx);
+            originPos.y = fromScreenY(my);
+            if (onOriginChange) onOriginChange(originPos.x, originPos.y);
+            draw();
+            return;
+        }
+
+        // Cursor hint
+        const osx = toScreenX(originPos.x);
+        const osy = toScreenY(originPos.y);
+        canvas.style.cursor = Math.hypot(mx - osx, my - osy) < 15 ? 'move' : '';
+
         if (!viewState.isDragging) return;
         viewState.offsetX += e.clientX - viewState.lastMouse.x;
         viewState.offsetY += e.clientY - viewState.lastMouse.y;
         viewState.lastMouse = { x: e.clientX, y: e.clientY };
         draw();
     });
-    canvas.addEventListener('mouseup', () => { viewState.isDragging = false; });
-    canvas.addEventListener('mouseleave', () => { viewState.isDragging = false; });
+    canvas.addEventListener('mouseup', () => {
+        viewState.isDragging = false;
+        originDragging = false;
+    });
+    canvas.addEventListener('mouseleave', () => {
+        viewState.isDragging = false;
+        originDragging = false;
+    });
 
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
@@ -70,6 +111,10 @@ export function initPreview(canvasEl) {
 
 export function setTheme(dark) { isDarkMode = dark; draw(); }
 export function setProgressCallback(cb) { onProgressUpdate = cb; }
+export function setOrigin(x, y) { originPos.x = x; originPos.y = y; draw(); }
+export function getOrigin() { return { x: originPos.x, y: originPos.y }; }
+export function setOriginCallback(cb) { onOriginChange = cb; }
+export function setVectorBounds(b) { vectorBounds = b; }
 
 export function zoomIn() {
     const cx = canvas.width / 2, cy = canvas.height / 2;
@@ -129,7 +174,7 @@ export function showPaths(moveGroups, mode) {
 
 // --- Processed output: build animation data ---
 
-export function showProcessedPaths(outputLines, bladeWidth) {
+export function showProcessedPaths(outputLines, bladeWidth, originShift) {
     stopAnimation();
 
     const waypoints = [];
@@ -175,8 +220,21 @@ export function showProcessedPaths(outputLines, bladeWidth) {
               || comment.includes('Lifting at cut finish');
 
         waypoints.push({ x: nx, y: ny, z: nz, angle: cAngle, isJog, isLift });
-        updateBounds(bounds, nx, ny);
         cx = nx; cy = ny; cz = nz;
+    }
+
+    // Shift waypoints back to original vector space for display
+    // (the output file keeps the shifted coords; preview stays aligned with bounding box)
+    if (originShift && (originShift.x !== 0 || originShift.y !== 0)) {
+        for (const wp of waypoints) {
+            wp.x += originShift.x;
+            wp.y += originShift.y;
+        }
+    }
+
+    // Compute bounds after any shift
+    for (const wp of waypoints) {
+        updateBounds(bounds, wp.x, wp.y);
     }
 
     // Precompute cumulative distances for animation timing
@@ -325,15 +383,113 @@ function draw() {
     ctx.fillRect(0, 0, w, h);
     drawGrid(w, h);
 
-    if (!cachedPaths) return;
-
-    const isAnimMode = animData && animState;
-
-    if (isAnimMode) {
-        drawAnimated();
-    } else {
-        drawStatic();
+    if (cachedPaths) {
+        const isAnimMode = animData && animState;
+        if (isAnimMode) {
+            drawAnimated();
+        } else {
+            drawStatic();
+        }
     }
+
+    drawOriginCrosshair();
+}
+
+function drawOriginCrosshair() {
+    const sx = toScreenX(originPos.x);
+    const sy = toScreenY(originPos.y);
+    const arm = 20;
+    const gap = 5;
+    const color = '#00cc66';
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+
+    // Four arms with gap in center
+    ctx.beginPath();
+    ctx.moveTo(sx - arm, sy); ctx.lineTo(sx - gap, sy);
+    ctx.moveTo(sx + gap, sy); ctx.lineTo(sx + arm, sy);
+    ctx.moveTo(sx, sy - arm); ctx.lineTo(sx, sy - gap);
+    ctx.moveTo(sx, sy + gap); ctx.lineTo(sx, sy + arm);
+    ctx.stroke();
+
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(sx, sy, gap, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Bounding box with corner coordinates (always use original vector bounds)
+    const bb = vectorBounds || (cachedPaths && cachedPaths.bounds);
+    if (bb && bb.minX !== Infinity) {
+        drawBoundsBox(bb, color);
+    }
+}
+
+function drawBoundsBox(bounds, color) {
+    const ox = originPos.x, oy = originPos.y;
+
+    // Screen corners of the bounding box
+    const sLeft   = toScreenX(bounds.minX);
+    const sRight  = toScreenX(bounds.maxX);
+    const sTop    = toScreenY(bounds.maxY);  // maxY → top of screen (Y flipped)
+    const sBottom = toScreenY(bounds.minY);
+
+    // Dashed bounding rectangle
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.rect(sLeft, sTop, sRight - sLeft, sBottom - sTop);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Corner coordinates (vector coords minus origin)
+    const bl = { x: bounds.minX - ox, y: bounds.minY - oy };
+    const br = { x: bounds.maxX - ox, y: bounds.minY - oy };
+    const tl = { x: bounds.minX - ox, y: bounds.maxY - oy };
+    const tr = { x: bounds.maxX - ox, y: bounds.maxY - oy };
+
+    ctx.fillStyle = color;
+    ctx.font = '10px sans-serif';
+    const pad = 5;
+
+    // Bottom-left
+    ctx.textAlign = 'right';
+    ctx.fillText(fmt(bl.x, bl.y), sLeft - pad, sBottom + 12);
+
+    // Bottom-right
+    ctx.textAlign = 'left';
+    ctx.fillText(fmt(br.x, br.y), sRight + pad, sBottom + 12);
+
+    // Top-left
+    ctx.textAlign = 'right';
+    ctx.fillText(fmt(tl.x, tl.y), sLeft - pad, sTop - pad);
+
+    // Top-right
+    ctx.textAlign = 'left';
+    ctx.fillText(fmt(tr.x, tr.y), sRight + pad, sTop - pad);
+
+    // Width label (centered along bottom edge)
+    const width  = bounds.maxX - bounds.minX;
+    const height = bounds.maxY - bounds.minY;
+    const midX = (sLeft + sRight) / 2;
+    const midY = (sTop + sBottom) / 2;
+
+    ctx.textAlign = 'center';
+    ctx.fillText(`W: ${width.toFixed(3)}`, midX, sBottom + 12);
+
+    // Height label (centered along right edge, rotated)
+    ctx.save();
+    ctx.translate(sRight + pad + 14, midY);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(`H: ${height.toFixed(3)}`, 0, 0);
+    ctx.restore();
+}
+
+function fmt(x, y) {
+    return `${x.toFixed(3)}, ${y.toFixed(3)}`;
 }
 
 function drawStatic() {

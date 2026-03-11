@@ -8,7 +8,8 @@ import {
     initPreview, showPaths, showProcessedPaths, clearPreview,
     setTheme, zoomIn, zoomOut, zoomFit,
     playAnimation, pauseAnimation, stopAnimation,
-    setAnimProgress, setAnimSpeed, sliderToSpeed, setProgressCallback, isAnimating
+    setAnimProgress, setAnimSpeed, sliderToSpeed, setProgressCallback, isAnimating,
+    setOrigin, getOrigin, setOriginCallback, setVectorBounds
 } from './modules/preview.js';
 
 let fileText = null;
@@ -139,6 +140,24 @@ function setupEventListeners() {
 
     // Default cut depth applies to all paths
     document.getElementById('cutDepth').addEventListener('change', applyDefaultDepth);
+
+    // Origin inputs ↔ canvas crosshair
+    const originXInput = document.getElementById('originX');
+    const originYInput = document.getElementById('originY');
+    originXInput.addEventListener('change', () => {
+        const x = readNumericInput('originX', 0);
+        const y = readNumericInput('originY', 0);
+        setOrigin(x, y);
+    });
+    originYInput.addEventListener('change', () => {
+        const x = readNumericInput('originX', 0);
+        const y = readNumericInput('originY', 0);
+        setOrigin(x, y);
+    });
+    setOriginCallback((x, y) => {
+        originXInput.value = x.toFixed(3);
+        originYInput.value = y.toFixed(3);
+    });
 }
 
 // ── File handling ──
@@ -166,6 +185,7 @@ async function handleSBPFile(file) {
         parsedFile = parseSBP(fileText);
         vectorPaths = null;
         processedOutput = null;
+        setVectorBounds(null);
 
         // Update UI
         showFileInfo('SBP');
@@ -207,6 +227,7 @@ async function handleVectorFile(file, ext) {
 
         parsedFile = null;
         processedOutput = null;
+        setVectorBounds(vectorPaths.bounds);
 
         // Initialize per-path cut settings from default
         const defaultDepth = readNumericInput('cutDepth', 0.125);
@@ -272,6 +293,10 @@ function clearFile() {
     setModeUI(null);
 
     clearPreview();
+    setVectorBounds(null);
+    setOrigin(0, 0);
+    document.getElementById('originX').value = '0';
+    document.getElementById('originY').value = '0';
     document.getElementById('playbackBar').classList.add('hidden');
     setStatus('Ready — load a file to begin');
 }
@@ -458,8 +483,15 @@ async function doProcessVector() {
     await new Promise(r => setTimeout(r, 50));
 
     try {
+        // Apply origin offset — shift all points so the crosshair becomes 0,0
+        const origin = getOrigin();
+        const offsetSelected = selected.map(p => ({
+            ...p,
+            points: p.points.map(pt => ({ x: pt.x - origin.x, y: pt.y - origin.y })),
+        }));
+
         // Convert to moveGroups (depth/passes come from each path object)
-        const moveGroups = convertPathsToMoveGroups(selected, { safeZ });
+        const moveGroups = convertPathsToMoveGroups(offsetSelected, { safeZ });
 
         // Run through tangential knife processor
         const { outputLines, stats } = processFile(moveGroups, {
@@ -475,8 +507,8 @@ async function doProcessVector() {
         const fullOutput = [...header, ...outputLines, ...footer];
         processedOutput = fullOutput.join('\r\n');
 
-        // Show processed preview
-        showProcessedPaths(outputLines, bladeWidth);
+        // Show processed preview (shift waypoints back to original space for display)
+        showProcessedPaths(outputLines, bladeWidth, origin);
         document.getElementById('playbackBar').classList.remove('hidden');
         document.getElementById('progressSlider').value = 0;
         document.getElementById('progressPct').textContent = '0%';
