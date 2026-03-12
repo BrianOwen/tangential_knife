@@ -16,6 +16,7 @@ let fileText = null;
 let parsedFile = null;      // SBP mode: from parseSBP()
 let vectorPaths = null;     // Vector mode: { paths, bounds }
 let selectedPathIds = new Set();
+let highlightedPathId = -1;
 let processedOutput = null;
 let fileName = '';
 let mode = null;            // 'sbp' or 'vector'
@@ -303,7 +304,7 @@ function clearFile() {
 
 // ── Vector path list ──
 
-const PATH_COLORS = ['#4a9eff', '#ff6b6b', '#44cc44', '#ffa500', '#cc44cc', '#44cccc', '#ffcc00', '#ff44aa'];
+const PATH_COLORS = ['#4a9eff', '#e84040', '#44cc44', '#ffa500', '#cc44cc', '#44cccc', '#ffcc00', '#ff44aa'];
 
 function renderPathList() {
     const list = document.getElementById('pathList');
@@ -321,7 +322,8 @@ function renderPathList() {
         <span class="path-col-label">passes</span>
     </div>` + paths.map(p => {
         const checked = selectedPathIds.has(p.id) ? 'checked' : '';
-        const cls = selectedPathIds.has(p.id) ? '' : ' deselected';
+        let cls = selectedPathIds.has(p.id) ? '' : ' deselected';
+        if (p.id === highlightedPathId) cls += ' highlighted';
         const color = PATH_COLORS[p.id % PATH_COLORS.length];
         const type = p.isClosed ? 'closed' : 'open';
         return `<div class="path-item${cls}" data-pid="${p.id}">
@@ -363,6 +365,18 @@ function renderPathList() {
         inp.addEventListener('click', e => e.stopPropagation());
     });
 
+    // Click on path row to highlight on canvas
+    list.querySelectorAll('.path-item').forEach(row => {
+        row.addEventListener('click', (e) => {
+            // Don't trigger on checkbox or number input clicks
+            if (e.target.tagName === 'INPUT') return;
+            const pid = parseInt(row.dataset.pid);
+            highlightedPathId = highlightedPathId === pid ? -1 : pid;
+            renderPathList();
+            showVectorPreview();
+        });
+    });
+
     document.getElementById('processBtn').disabled = selectedPathIds.size === 0;
 }
 
@@ -400,8 +414,9 @@ function showVectorPreview() {
         const lastPt = path.isClosed ? pts[0] : pts[pts.length - 1];
         moves.push({ x: lastPt.x, y: lastPt.y, z: safeZ, moveType: 'R' });
 
-        const group = { moves };
+        const group = { moves, _color: PATH_COLORS[path.id % PATH_COLORS.length] };
         if (!isSelected) group._dimmed = true;
+        if (path.id === highlightedPathId) group._highlighted = true;
         allGroups.push(group);
     }
 

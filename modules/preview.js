@@ -156,10 +156,14 @@ export function showPaths(moveGroups, mode) {
 
     for (const group of moveGroups) {
         const moves = group.moves;
+        const cutColor = group._color || COLORS.cut;
+        const dimmed = group._dimmed;
+        const highlighted = group._highlighted;
         for (let i = 0; i < moves.length - 1; i++) {
             const a = moves[i], b = moves[i + 1];
-            const color = (a.moveType === 'J' || a.moveType === 'R') ? COLORS.jog : COLORS.cut;
-            segments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, color });
+            const isJog = a.moveType === 'J' || a.moveType === 'R';
+            const color = isJog ? COLORS.jog : cutColor;
+            segments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, color, dimmed, highlighted });
             updateBounds(bounds, a.x, a.y);
             updateBounds(bounds, b.x, b.y);
         }
@@ -495,22 +499,47 @@ function fmt(x, y) {
 function drawStatic() {
     const { segments } = cachedPaths;
 
+    // Jogs (dashed grey)
     ctx.lineWidth = 0.5;
     ctx.setLineDash([4, 4]);
     for (const seg of segments) {
         if (seg.color === COLORS.jog) drawSegment(seg);
     }
 
+    // Lifts (dashed red)
     ctx.lineWidth = 1.5;
     ctx.setLineDash([3, 3]);
     for (const seg of segments) {
         if (seg.color === COLORS.lift) drawSegment(seg);
     }
 
-    ctx.lineWidth = 1.5;
+    // Cut segments (per-path colors)
     ctx.setLineDash([]);
+    const dimColor = isDarkMode ? COLORS.uncut.dark : COLORS.uncut.light;
     for (const seg of segments) {
-        if (seg.color === COLORS.cut) drawSegment(seg);
+        if (seg.color !== COLORS.jog && seg.color !== COLORS.lift) {
+            ctx.lineWidth = seg.dimmed ? 1 : 1.5;
+            ctx.globalAlpha = seg.dimmed ? 0.35 : 1;
+            if (seg.dimmed) {
+                drawSegment({ ...seg, color: dimColor });
+            } else {
+                drawSegment(seg);
+            }
+        }
+    }
+    ctx.globalAlpha = 1;
+
+    // Highlighted path drawn on top with glow
+    ctx.globalAlpha = 1;
+    for (const seg of segments) {
+        if (seg.highlighted && seg.color !== COLORS.jog) {
+            ctx.save();
+            ctx.shadowColor = seg.color;
+            ctx.shadowBlur = 8;
+            ctx.lineWidth = 3;
+            drawSegment(seg);
+            ctx.restore();
+        }
     }
 }
 

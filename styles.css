@@ -496,6 +496,11 @@ input[type="number"]:focus {
 .path-item.deselected {
     opacity: 0.4;
 }
+.path-item.highlighted {
+    background: var(--bg-tertiary);
+    outline: 1px solid var(--accent);
+    border-radius: 4px;
+}
 .path-item .path-color {
     display: inline-block;
     width: 10px;

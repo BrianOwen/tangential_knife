@@ -96,7 +96,7 @@ export function processFile(moveGroups, options) {
             const prevDist = distance(mQ[i - 1].x, mQ[i - 1].y, cur.x, cur.y);
             const turn = turns[i]; // turn at THIS point (change from incoming to outgoing)
 
-            if (Math.abs(turn) <= pulloutAngle) {
+            if (Math.abs(turn) <= pulloutAngle + 0.01) {
                 // Small turn — rotate blade while moving straight
 
                 if (Math.abs(turn) > 0.01 && prevDist >= bladeWidth) {
@@ -139,7 +139,7 @@ export function processFile(moveGroups, options) {
                 // Unwind at 360
                 if (Math.abs(totAngle) >= 360) {
                     totAngle = totAngle - 360 * Math.floor(totAngle / 360);
-                    outputLines.push(`VA,,,,,${totAngle},,,,,0`);
+                    outputLines.push(`VA,,,,,${ra(totAngle)}`);
                 }
 
                 // Plunge back
@@ -156,7 +156,7 @@ export function processFile(moveGroups, options) {
         // Unwind if needed
         if (Math.abs(totAngle) >= 360) {
             totAngle = totAngle - 360 * Math.floor(totAngle / 360);
-            outputLines.push(`VA,,,,,${totAngle},,,,,0`);
+            outputLines.push(`VA,,,,,${ra(totAngle)}`);
         }
 
         stats.totalAngle = totAngle;
