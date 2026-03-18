@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════════════════
+   Tangential Knife — Theme Bridge
+   Maps local CSS variables to shared --t-* tokens.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Remap local vars to theme tokens ── */
+[class*="theme-"] {
+  --primary:       var(--t-bg-header);
+  --accent:        var(--t-accent);
+  --bg-primary:    var(--t-bg-primary);
+  --bg-secondary:  var(--t-bg-secondary);
+  --bg-tertiary:   var(--t-bg-tertiary);
+  --text-primary:  var(--t-text);
+  --text-secondary: var(--t-text-dim);
+  --border-color:  var(--t-border);
+}
+
+/* ── Layout: push below shared top bar ── */
+body { padding-top: var(--sb-topbar-h); box-sizing: border-box; }
+.sidebar { top: var(--sb-topbar-h) !important; }
+.main-area { top: var(--sb-topbar-h) !important; }
+
+/* ── Section styling ── */
+[class*="theme-"] .control-section { border-color: var(--t-border); }
+[class*="theme-"] .control-section h3 {
+  color: var(--t-text-dim);
+  font-size: var(--t-fs-section);
+  text-shadow: var(--t-text-glow, none);
+}
+
+/* ── Field labels ── */
+[class*="theme-"] .input-grid label {
+  font-size: var(--t-fs-label);
+  color: var(--t-text-dim);
+  font-weight: var(--t-label-weight, 400);
+  text-shadow: var(--t-text-glow, none);
+}
+
+/* ── Help text ── */
+[class*="theme-"] .help-text {
+  color: var(--t-text-dim);
+  font-size: var(--t-fs-unit);
+}
+
+/* ── Buttons ── */
+[class*="theme-"] .btn {
+  border-color: var(--t-border);
+  background: var(--t-btn-setting-bg, var(--t-bg-primary));
+  color: var(--t-btn-setting-text, var(--t-text));
+  border-radius: var(--t-radius);
+}
+[class*="theme-"] .btn:hover { border-color: var(--t-accent); color: var(--t-accent); }
+[class*="theme-"] .btn.primary {
+  background: var(--t-btn-action-bg, var(--t-accent));
+  border-color: var(--t-btn-action-bg, var(--t-accent));
+  color: var(--t-btn-action-text, #fff);
+}
+[class*="theme-"] .btn.primary:hover {
+  filter: brightness(1.1); color: var(--t-btn-action-text, #fff);
+}
+
+/* ── Path list ── */
+[class*="theme-"] .path-item { color: var(--t-text); border-color: var(--t-border); }
+[class*="theme-"] .path-item:hover { background: var(--t-hover-bg); }
+[class*="theme-"] .path-item.selected { border-color: var(--t-accent); }
+[class*="theme-"] .badge { color: var(--t-text-dim); }
+
+/* ── Stats grid ── */
+[class*="theme-"] .stats-grid { color: var(--t-text-dim); }
+[class*="theme-"] .stat-value { color: var(--t-text); }
+
+/* ── Canvas area ── */
+[class*="theme-"] .playback-bar {
+  background: var(--t-bg-secondary);
+  border-top: 1px solid var(--t-border);
+}
+[class*="theme-"] .playback-btn { color: var(--t-text); }
+[class*="theme-"] .progress-pct,
+[class*="theme-"] .speed-label,
+[class*="theme-"] .speed-value { color: var(--t-text-dim); }
+
+/* ── Legend ── */
+[class*="theme-"] .canvas-legend { color: var(--t-text-dim); }
+
+/* ── Status bar ── */
+[class*="theme-"] .status-bar {
+  color: var(--t-text-dim);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Per-theme overrides
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── SB 1.0: amber terminal ── */
+.theme-shopbot1 .control-section h3 {
+  color: #f09040; text-shadow: 0 0 6px rgba(240,144,64,0.35);
+}
+.theme-shopbot1 .control-section h3::before { content: '// '; color: #a05818; }
+.theme-shopbot1::after {
+  content: ''; position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* ── ShopBot Light ── */
+.theme-shopbot-light .control-section h3 { padding-bottom: 6px; border-bottom: 1px dotted #999; }
+
+/* ── ShopBot Color: rainbow sections ── */
+.theme-shopbot-color .control-section { border-left: 4px solid transparent; }
+.theme-shopbot-color .control-section:nth-child(2) { border-left-color: #e04040; }
+.theme-shopbot-color .control-section:nth-child(2) h3 { color: #e04040; }
+.theme-shopbot-color .control-section:nth-child(3) { border-left-color: #e08020; }
+.theme-shopbot-color .control-section:nth-child(3) h3 { color: #e08020; }
+.theme-shopbot-color .control-section:nth-child(4) { border-left-color: #c8a020; }
+.theme-shopbot-color .control-section:nth-child(4) h3 { color: #c8a020; }
+.theme-shopbot-color .control-section:nth-child(5) { border-left-color: #38a838; }
+.theme-shopbot-color .control-section:nth-child(5) h3 { color: #38a838; }
+.theme-shopbot-color .control-section:nth-child(6) { border-left-color: #3080d0; }
+.theme-shopbot-color .control-section:nth-child(6) h3 { color: #3080d0; }
+.theme-shopbot-color .control-section:nth-child(7) { border-left-color: #8040c0; }
+.theme-shopbot-color .control-section:nth-child(7) h3 { color: #8040c0; }
+
+/* ── SBcode: syntax coloring ── */
+.theme-devdark .control-section h3::before { content: '// '; color: #6a9955; }
+.theme-devdark .input-grid label { color: var(--t-syntax-param); }
+
+/* ── ShopBot 3: ruled legal-pad sidebar ── */
+.theme-shopbot3 .sidebar {
+  background-color: #fef9c3;
+  background-image:
+    linear-gradient(to right, transparent 44px, #e06060 44px, #e06060 46px, transparent 46px),
+    repeating-linear-gradient(to bottom, transparent 0px, transparent 29px, #aecfea 29px, #aecfea 30px);
+  background-attachment: local;
+}
+
+.theme-shopbot3 .sidebar-header {
+  height: 90px !important; box-sizing: border-box !important;
+  padding-top: 0 !important; padding-bottom: 0 !important;
+  justify-content: center; align-items: flex-start;
+}
+
+.theme-shopbot3 .control-section {
+  background: transparent; border-bottom: none; padding: 0 1rem 0 56px;
+}
+.theme-shopbot3 .control-section h3 {
+  height: 30px; display: flex; align-items: center; margin-bottom: 0;
+}
+.theme-shopbot3 .input-grid {
+  grid-auto-rows: 30px; row-gap: 0; align-items: center;
+}
+.theme-shopbot3 .input-grid label {
+  height: 30px; display: flex; align-items: center; margin: 0;
+}
+.theme-shopbot3 .input-with-unit { height: 30px; }
+.theme-shopbot3 input[type="number"],
+.theme-shopbot3 select { height: 30px; padding-top: 0; padding-bottom: 0; border-radius: 0; }
+.theme-shopbot3 .btn { height: 30px; padding: 0; border-radius: 0; }
+.theme-shopbot3 .drop-zone { min-height: 60px; border-radius: 0; padding: 6px; }

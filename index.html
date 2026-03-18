@@ -4,25 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tangential Knife Processor</title>
+    <link rel="stylesheet" href="../ui_testbed/themes/tokens.css">
+    <link rel="stylesheet" href="../ui_testbed/themes/components.css">
+    <link rel="stylesheet" href="../ui_testbed/themes/theme-picker.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme-bridge.css">
 </head>
-<body class="dark-mode">
+<body>
     <div class="sidebar">
-        <div class="sidebar-header">
-            <a href="/"><img src="ShopBot_Logo.jpg" alt="ShopBot Labs" class="sidebar-logo"></a>
-            <div class="header-row">
-                <h1>Tangential Knife</h1>
-                <div class="header-controls">
-                    <button id="themeToggle" class="icon-btn" title="Toggle theme">
-                        <span class="light-icon">&#9790;</span>
-                        <span class="dark-icon">&#9788;</span>
-                    </button>
-                </div>
+        <div class="sidebar-header sb-header">
+            <div class="sb-brand">
+                <a href="https://www.shopbottools.com" target="_blank"><img class="sidebar-logo sb-brand-logo" src="../ui_testbed/SBLogo Crop.png" alt="ShopBot"></a>
+                <span class="sb-brand-name">Tangential Knife</span>
             </div>
         </div>
 
-        <section class="control-section">
-            <h3>File</h3>
+        <section class="control-section sb-section">
+            <h3 class="sb-section-title">File</h3>
             <div id="dropZone" class="drop-zone">
                 <p>Drag &amp; drop a file to begin</p>
                 <p class="drop-hint">.sbp &mdash; post-process existing toolpath<br>.svg / .dxf &mdash; create knife toolpath from vectors</p>
@@ -39,8 +37,8 @@
         </section>
 
         <!-- Vector mode: cut settings -->
-        <section class="control-section vector-only hidden" id="vectorSettings">
-            <h3>Cut Settings</h3>
+        <section class="control-section sb-section vector-only hidden" id="vectorSettings">
+            <h3 class="sb-section-title">Cut Settings</h3>
             <div class="input-grid">
                 <label for="cutDepth">Cut Depth</label>
                 <div class="input-with-unit">
@@ -61,8 +59,8 @@
         </section>
 
         <!-- Vector mode: path selection -->
-        <section class="control-section vector-only hidden" id="pathListSection">
-            <h3>Paths <span id="pathCount" class="badge"></span></h3>
+        <section class="control-section sb-section vector-only hidden" id="pathListSection">
+            <h3 class="sb-section-title">Paths <span id="pathCount" class="badge"></span></h3>
             <div class="path-controls">
                 <button id="selectAllPaths" class="btn sm">Select All</button>
                 <button id="deselectAllPaths" class="btn sm">Deselect All</button>
@@ -70,8 +68,8 @@
             <div id="pathList" class="path-list"></div>
         </section>
 
-        <section class="control-section">
-            <h3>Knife Settings</h3>
+        <section class="control-section sb-section">
+            <h3 class="sb-section-title">Knife Settings</h3>
             <div class="input-grid">
                 <label for="bladeWidth">Blade Width</label>
                 <div class="input-with-unit">
@@ -92,8 +90,8 @@
             </p>
         </section>
 
-        <section class="control-section">
-            <h3>Options</h3>
+        <section class="control-section sb-section">
+            <h3 class="sb-section-title">Options</h3>
             <div class="input-grid">
                 <label for="safeZ">Safe Z Height</label>
                 <div class="input-with-unit">
@@ -114,17 +112,17 @@
             <p class="help-text">Drag the crosshair on the canvas to reposition the origin.</p>
         </section>
 
-        <section class="control-section">
+        <section class="control-section sb-section">
             <button id="processBtn" class="btn primary" disabled>Process File</button>
             <button id="downloadBtn" class="btn" disabled>Download Processed File</button>
         </section>
 
-        <section class="control-section">
+        <section class="control-section sb-section">
             <div id="statusBar" class="status-bar">Ready</div>
         </section>
 
-        <section class="control-section stats-section hidden" id="statsSection">
-            <h3>Processing Summary</h3>
+        <section class="control-section sb-section stats-section hidden" id="statsSection">
+            <h3 class="sb-section-title">Processing Summary</h3>
             <div class="stats-grid" id="statsGrid"></div>
         </section>
     </div>
@@ -161,5 +159,9 @@
     </div>
 
     <script type="module" src="main.js"></script>
+    <script type="module">
+        import { initThemePicker } from '../ui_testbed/themes/theme-picker.js';
+        initThemePicker();
+    </script>
 </body>
 </html>

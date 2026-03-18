@@ -64,12 +64,20 @@ function setupEventListeners() {
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
     document.getElementById('zoomFitBtn').addEventListener('click', zoomFit);
 
-    // Theme
-    document.getElementById('themeToggle').addEventListener('click', () => {
-        const isDark = document.body.classList.toggle('dark-mode');
-        document.body.classList.toggle('light-mode', !isDark);
+    // Theme — sync from theme-picker class changes
+    function syncTheme() {
+        const css = getComputedStyle(document.body);
+        const canvasBg = css.getPropertyValue('--t-canvas-bg').trim();
+        // Determine dark/light from canvas background luminosity
+        const r = parseInt(canvasBg.slice(1,3), 16) || 0;
+        const g = parseInt(canvasBg.slice(3,5), 16) || 0;
+        const b = parseInt(canvasBg.slice(5,7), 16) || 0;
+        const isDark = (r + g + b) / 3 < 128;
         setTheme(isDark);
-    });
+    }
+    new MutationObserver(syncTheme)
+        .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    syncTheme();
 
     // Animation controls
     const playBtn = document.getElementById('playBtn');

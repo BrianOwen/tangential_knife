@@ -109,7 +109,16 @@ export function initPreview(canvasEl) {
     draw();
 }
 
-export function setTheme(dark) { isDarkMode = dark; draw(); }
+export function setTheme(dark) {
+    isDarkMode = dark;
+    const css = getComputedStyle(document.body);
+    const canvasBg = css.getPropertyValue('--t-canvas-bg').trim();
+    if (canvasBg) {
+        COLORS.background.dark = canvasBg;
+        COLORS.background.light = canvasBg;
+    }
+    draw();
+}
 export function setProgressCallback(cb) { onProgressUpdate = cb; }
 export function setOrigin(x, y) { originPos.x = x; originPos.y = y; draw(); }
 export function getOrigin() { return { x: originPos.x, y: originPos.y }; }
