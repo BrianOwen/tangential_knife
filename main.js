@@ -671,14 +671,20 @@ function doDownload() {
         outName = fileName.replace(/\.sbp$/i, '_knife.sbp');
     }
 
-    const blob = new Blob([processedOutput], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = outName;
-    a.click();
-    URL.revokeObjectURL(url);
-    setStatus(`Downloaded: ${outName}`);
+    // FabMo: submit to tool instead of downloading
+    if (window.FabMoBridge && window.FabMoBridge.isFabMo) {
+        window.FabMoBridge.submitJob(processedOutput, outName, 'sbp');
+        setStatus(`Submitted: ${outName}`);
+    } else {
+        const blob = new Blob([processedOutput], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = outName;
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus(`Downloaded: ${outName}`);
+    }
 }
 
 // ── Helpers ──
