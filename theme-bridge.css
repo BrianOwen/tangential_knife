@@ -20,6 +20,20 @@ body { padding-top: var(--sb-topbar-h); box-sizing: border-box; }
 .sidebar { top: var(--sb-topbar-h) !important; }
 .main-area { top: var(--sb-topbar-h) !important; }
 
+/* ── Sidebar body is the scroll container (.sb-panel: flex:1, overflow-y:auto)
+      so the SB3 ruled-paper background renders below the header only ── */
+body[class*="theme-"] .sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body[class*="theme-"] .sidebar-body::-webkit-scrollbar { width: 8px; }
+body[class*="theme-"] .sidebar-body::-webkit-scrollbar-track { background: var(--bg-secondary); }
+body[class*="theme-"] .sidebar-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
 /* ── Section styling ── */
 [class*="theme-"] .control-section { border-color: var(--t-border); }
 [class*="theme-"] .control-section h3 {
@@ -96,42 +110,25 @@ body { padding-top: var(--sb-topbar-h); box-sizing: border-box; }
   color: #f09040; text-shadow: 0 0 6px rgba(240,144,64,0.35);
 }
 .theme-shopbot1 .control-section h3::before { content: '// '; color: #a05818; }
-.theme-shopbot1::after {
-  content: ''; position: fixed; inset: 0;
-  background: repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
-  pointer-events: none; z-index: 9999;
-}
+/* (scanline overlay removed — shared components.css already renders
+   .theme-shopbot1::after scanlines; duplicating it here double-darkened) */
 
 /* ── ShopBot Light ── */
 .theme-shopbot-light .control-section h3 { padding-bottom: 6px; border-bottom: 1px dotted #999; }
 
-/* ── ShopBot Color: rainbow sections ── */
+/* ── ShopBot Color: rainbow sections ──
+   (handled by shared .theme-shopbot-color .sb-section:nth-child(n) rules in
+    components.css — sections are now direct children of .sidebar-body, so the
+    shared 1-based indexing applies; the old local 2-based rules were removed) */
 .theme-shopbot-color .control-section { border-left: 4px solid transparent; }
-.theme-shopbot-color .control-section:nth-child(2) { border-left-color: #e04040; }
-.theme-shopbot-color .control-section:nth-child(2) h3 { color: #e04040; }
-.theme-shopbot-color .control-section:nth-child(3) { border-left-color: #e08020; }
-.theme-shopbot-color .control-section:nth-child(3) h3 { color: #e08020; }
-.theme-shopbot-color .control-section:nth-child(4) { border-left-color: #c8a020; }
-.theme-shopbot-color .control-section:nth-child(4) h3 { color: #c8a020; }
-.theme-shopbot-color .control-section:nth-child(5) { border-left-color: #38a838; }
-.theme-shopbot-color .control-section:nth-child(5) h3 { color: #38a838; }
-.theme-shopbot-color .control-section:nth-child(6) { border-left-color: #3080d0; }
-.theme-shopbot-color .control-section:nth-child(6) h3 { color: #3080d0; }
-.theme-shopbot-color .control-section:nth-child(7) { border-left-color: #8040c0; }
-.theme-shopbot-color .control-section:nth-child(7) h3 { color: #8040c0; }
 
 /* ── SBcode: syntax coloring ── */
 .theme-devdark .control-section h3::before { content: '// '; color: #6a9955; }
 .theme-devdark .input-grid label { color: var(--t-syntax-param); }
 
-/* ── ShopBot 3: ruled legal-pad sidebar ── */
-.theme-shopbot3 .sidebar {
-  background-color: #fef9c3;
-  background-image:
-    linear-gradient(to right, transparent 44px, #e06060 44px, #e06060 46px, transparent 46px),
-    repeating-linear-gradient(to bottom, transparent 0px, transparent 29px, #aecfea 29px, #aecfea 30px);
-  background-attachment: local;
-}
+/* ── ShopBot 3: ruled legal-pad sidebar ──
+   (ruled-paper background now comes from shared .theme-shopbot3 .sb-panel
+    in components.css, applied to .sidebar-body) */
 
 .theme-shopbot3 .sidebar-header {
   height: 90px !important; box-sizing: border-box !important;
