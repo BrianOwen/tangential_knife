@@ -287,6 +287,120 @@ export function showProcessedPaths(outputLines, bladeWidth, originShift) {
     draw();
 }
 
+// --- Simulate an existing knife file as-is ---
+
+/**
+ * Animate a knife .sbp exactly as it was authored — reading the real blade
+ * angle straight from the file instead of re-deriving it. Used to simulate
+ * files produced by other software (e.g. the ShopBot Tan/Osc Knife post).
+ *
+ * Blade angle is taken from the B axis only: the 5th field of M5/J5, the
+ * argument of MB/JB (rotate in place), and the B slot of VA (axis rezero).
+ *
+ * Unlike showProcessedPaths(), lift/jog state is detected geometrically (from
+ * Z relative to the material surface) rather than from comment text, so it
+ * works on files whose comments don't match this app's conventions.
+ *
+ * @param {string[]} lines - Raw SBP lines (parsedFile.rawLines)
+ * @param {object} opts - { bladeWidth }
+ */
+export function showSimulatedPaths(lines, opts = {}) {
+    stopAnimation();
+
+    const bladeWidth = opts.bladeWidth || 0.1;
+    const CUT_Z_EPS = 1e-4;   // z at/above this is "out of material"
+    const XY_EPS = 1e-4;      // min XY motion to count as a traverse
+
+    const waypoints = [];
+    let bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    let cx = 0, cy = 0, cz = 0, cAngle = 0;
+
+    for (const rawLine of lines) {
+        const trimmed = rawLine.trim();
+        if (trimmed === '' || trimmed.startsWith("'")) continue;
+
+        const ci = trimmed.indexOf("'");
+        const code = ci >= 0 ? trimmed.substring(0, ci).trim() : trimmed;
+        const parts = code.split(',');
+        const cmd = parts[0].toUpperCase();
+
+        let nx = cx, ny = cy, nz = cz;
+        let positionMove = true;   // false = no waypoint emitted (rezero / non-move)
+
+        switch (cmd) {
+            case 'M2': case 'J2':
+                nx = pf(parts[1], cx); ny = pf(parts[2], cy); break;
+            case 'M3': case 'J3': case 'M4': case 'J4':
+                nx = pf(parts[1], cx); ny = pf(parts[2], cy); nz = pf(parts[3], cz); break;
+            case 'M5': case 'J5':
+                nx = pf(parts[1], cx); ny = pf(parts[2], cy); nz = pf(parts[3], cz);
+                cAngle = pf(parts[5], cAngle); break;
+            case 'MX': case 'JX': nx = pf(parts[1], cx); break;
+            case 'MY': case 'JY': ny = pf(parts[1], cy); break;
+            case 'MZ': case 'JZ': nz = pf(parts[1], cz); break;
+            case 'MB': case 'JB': cAngle = pf(parts[1], cAngle); break;   // rotate in place
+            case 'VA': cAngle = pf(parts[5], cAngle); positionMove = false; break; // rezero B
+            default: positionMove = false; break;
+        }
+        if (!positionMove) continue;
+
+        const xyMoved = Math.hypot(nx - cx, ny - cy) > XY_EPS;
+        const aboveSurface = nz >= -CUT_Z_EPS;
+
+        // Classify each waypoint:
+        //   cut  — moving while in the material (blade engaged)
+        //   jog  — traversing across the table above the surface
+        //   lift — raised in place to turn/plunge (blade shown rotating)
+        let isJog = false, isLift = false;
+        if (aboveSurface) {
+            if (xyMoved) isJog = true;
+            else isLift = true;
+        }
+
+        waypoints.push({ x: nx, y: ny, z: nz, angle: cAngle, isJog, isLift });
+        updateBounds(bounds, nx, ny);
+        cx = nx; cy = ny; cz = nz;
+    }
+
+    if (waypoints.length === 0) {
+        cachedPaths = null;
+        animData = null;
+        animState = null;
+        draw();
+        return;
+    }
+
+    // Cumulative distances for animation timing (lifts dwell, jogs run fast)
+    const LIFT_DWELL = 0.5;
+    let totalDist = 0;
+    const cumDist = [0];
+    for (let i = 1; i < waypoints.length; i++) {
+        const d = Math.hypot(waypoints[i].x - waypoints[i - 1].x,
+                             waypoints[i].y - waypoints[i - 1].y);
+        if (waypoints[i].isLift) totalDist += LIFT_DWELL;
+        else if (waypoints[i].isJog) totalDist += d * 0.1;
+        else totalDist += d;
+        cumDist.push(totalDist);
+    }
+
+    // Static background segments
+    const segments = [];
+    for (let i = 1; i < waypoints.length; i++) {
+        const a = waypoints[i - 1], b = waypoints[i];
+        if (a.x === b.x && a.y === b.y) continue;
+        let color = COLORS.cut;
+        if (b.isJog) color = COLORS.jog;
+        else if (b.isLift) color = COLORS.lift;
+        segments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, color });
+    }
+
+    cachedPaths = { segments, bounds, mode: 'output' };
+    animData = { waypoints, cumDist, totalDist, bladeWidth };
+    animState = { playing: false, progress: 0, speed: 1 };
+    fitView(bounds);
+    draw();
+}
+
 // --- Animation controls ---
 
 export function playAnimation() {

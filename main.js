@@ -5,7 +5,7 @@ import { processFile } from './modules/processor.js';
 import { parseSVGFile, parseDXFFile } from './modules/vector-import.js';
 import { convertPathsToMoveGroups } from './modules/vector-to-movegroups.js';
 import {
-    initPreview, showPaths, showProcessedPaths, clearPreview,
+    initPreview, showPaths, showProcessedPaths, showSimulatedPaths, clearPreview,
     setTheme, zoomIn, zoomOut, zoomFit,
     playAnimation, pauseAnimation, stopAnimation,
     setAnimProgress, setAnimSpeed, sliderToSpeed, setProgressCallback, isAnimating,
@@ -52,6 +52,9 @@ function setupEventListeners() {
 
     // Clear file
     document.getElementById('clearFileBtn').addEventListener('click', clearFile);
+
+    // Simulate loaded knife file as-is
+    document.getElementById('simulateBtn').addEventListener('click', doSimulate);
 
     // Process
     document.getElementById('processBtn').addEventListener('click', doProcess);
@@ -282,6 +285,10 @@ function setModeUI(m) {
     document.querySelectorAll('.vector-only').forEach(el => {
         el.classList.toggle('hidden', m !== 'vector');
     });
+    // Show/hide sbp-only controls (e.g. Simulate)
+    document.querySelectorAll('.sbp-only').forEach(el => {
+        el.classList.toggle('hidden', m !== 'sbp');
+    });
 }
 
 function clearFile() {
@@ -432,6 +439,21 @@ function showVectorPreview() {
 }
 
 // ── Process ──
+
+// Simulate the loaded knife file exactly as authored (reads the file's own
+// B-axis blade angle; no re-processing). Used for files made in other software.
+function doSimulate() {
+    if (mode !== 'sbp' || !parsedFile) return;
+
+    const bladeWidth = readNumericInput('bladeWidth', 0.1);
+    showSimulatedPaths(parsedFile.rawLines, { bladeWidth });
+
+    document.getElementById('playbackBar').classList.remove('hidden');
+    document.getElementById('progressSlider').value = 0;
+    document.getElementById('progressPct').textContent = '0%';
+    document.getElementById('statsSection').classList.add('hidden');
+    setStatus(`Simulating ${fileName} — press play to run the blade`);
+}
 
 async function doProcess() {
     if (mode === 'sbp') {
