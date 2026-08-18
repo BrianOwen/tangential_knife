@@ -153,3 +153,16 @@ body[class*="theme-"] .sidebar-body::-webkit-scrollbar-thumb {
 .theme-shopbot3 select { height: 30px; padding-top: 0; padding-bottom: 0; border-radius: 0; }
 .theme-shopbot3 .btn { height: 30px; padding: 0; border-radius: 0; }
 .theme-shopbot3 .drop-zone { min-height: 60px; border-radius: 0; padding: 6px; }
+
+/* ── Field text → --t-input-text token ──────────────────────────────────
+   Typed/selected values follow the dedicated --t-input-text token (falls
+   back to --t-text, so themes that don't set it are unchanged). This bridge
+   loads last, so it wins over the app's own field colors without !important
+   (which keeps devdark's syntax-colored number inputs intact). ── */
+body[class*="theme-"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+body[class*="theme-"] textarea,
+body[class*="theme-"] select,
+body[class*="theme-"] select option {
+  color: var(--t-input-text, var(--t-text));
+  font-weight: var(--t-input-weight, normal);
+}
